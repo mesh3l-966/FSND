@@ -17,10 +17,6 @@ class ShowForm(Form):
     )
 
 
-def maximum_genres(form, field):
-    print(form.errors)
-    if len(field.data) > 3:
-        raise ValidationError('Field must select less than 3')
 
 
 class VenueForm(Form):
