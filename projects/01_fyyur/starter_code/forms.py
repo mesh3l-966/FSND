@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask_wtf import Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, ValidationError
-from wtforms.validators import DataRequired, AnyOf, URL
+from wtforms.validators import DataRequired, AnyOf, URL, Length
 
 class ShowForm(Form):
     artist_id = StringField(
@@ -21,10 +21,10 @@ class ShowForm(Form):
 
 class VenueForm(Form):
     name = StringField(
-        'name', validators=[DataRequired()]
+        'name', validators=[DataRequired(), Length(min=1, max=30)]
     )
     city = StringField(
-        'city', validators=[DataRequired()]
+        'city', validators=[DataRequired(), Length(min=1, max=30)]
     )
     state = SelectField(
         'state', validators=[DataRequired()],
@@ -83,7 +83,7 @@ class VenueForm(Form):
         ]
     )
     address = StringField(
-        'address', validators=[DataRequired()]
+        'address', validators=[DataRequired(),Length(max=50)]
     )
     phone = StringField(
         'phone'
@@ -118,15 +118,15 @@ class VenueForm(Form):
         
     )
     facebook_link = StringField(
-        'facebook_link', validators=[URL()]
+        'facebook_link', validators=[URL(),Length(max=120)]
     )
 
 class ArtistForm(Form):
     name = StringField(
-        'name', validators=[DataRequired()]
+        'name', validators=[DataRequired(), Length(min=1, max=30)]
     )
     city = StringField(
-        'city', validators=[DataRequired()]
+        'city', validators=[DataRequired(), Length(min=1, max=30)]
     )
     state = SelectField(
         'state', validators=[DataRequired()],
@@ -218,7 +218,7 @@ class ArtistForm(Form):
     )
     facebook_link = StringField(
         # TODO implement enum restriction
-        'facebook_link', validators=[URL()]
+        'facebook_link', validators=[URL(), Length(max=120)]
     )
 
 # TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM
