@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask_wtf import Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, ValidationError
-from wtforms.validators import DataRequired, AnyOf, URL, Length
+from wtforms.validators import DataRequired, AnyOf, URL, Length, Optional
 
 class ShowForm(Form):
     artist_id = StringField(
@@ -15,11 +15,18 @@ class ShowForm(Form):
         validators=[DataRequired()],
         default= datetime.today()
     )
+    
 
 
 
 
 class VenueForm(Form):
+
+    def check_choices(form, field):
+        for choice in form.data:
+            if choice not in field.data:
+                raise ValidationError('Invalid value, must be one of: %s' % ([value for value in field.data]))
+
     name = StringField(
         'name', validators=[DataRequired(), Length(min=1, max=30)]
     )
@@ -83,7 +90,7 @@ class VenueForm(Form):
         ]
     )
     address = StringField(
-        'address', validators=[DataRequired(),Length(max=50)]
+        'address', validators=[DataRequired(),Length(max=100)]
     )
     phone = StringField(
         'phone'
@@ -93,7 +100,7 @@ class VenueForm(Form):
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
-        'genres', validators=[DataRequired(), ],
+        'genres', validators=[DataRequired()],
         choices=[
             ('Alternative', 'Alternative'),
             ('Blues', 'Blues'),
@@ -118,8 +125,9 @@ class VenueForm(Form):
         
     )
     facebook_link = StringField(
-        'facebook_link', validators=[URL(),Length(max=120)]
+        'facebook_link', validators=[Optional(),URL(),Length(min=0, max=120)]
     )
+    
 
 class ArtistForm(Form):
     name = StringField(
@@ -218,7 +226,7 @@ class ArtistForm(Form):
     )
     facebook_link = StringField(
         # TODO implement enum restriction
-        'facebook_link', validators=[URL(), Length(max=120)]
+        'facebook_link', validators=[Optional(), URL(), Length(max=120)]
     )
 
 # TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM

@@ -192,6 +192,11 @@ def create_venue_form():
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+  form = VenueForm()
+  if not form.validate_on_submit():
+    for message in form.errors:
+      flash ('error: '+message)
+    return render_template('forms/new_venue.html', form=form)
   name = request.form['name']
   city = request.form['city']
   state = request.form['state']
@@ -322,6 +327,11 @@ def edit_artist(artist_id):
 def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
+  form = ArtistForm()
+  if not form.validate_on_submit():
+    for message in form.errors:
+      flash ('error: '+message)
+    return redirect(url_for('artists'))
   artist = Artist.query.get(artist_id)
   name = request.form['name']
   city = request.form['city']
@@ -385,7 +395,12 @@ def edit_venue(venue_id):
 def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
-
+  
+  form = ArtistForm()
+  if not form.validate_on_submit():
+    for message in form.errors:
+      flash ('error: '+message)
+    return redirect(url_for('venues'))
   
   venue = Venue.query.get(venue_id)
   name = request.form['name']
@@ -431,6 +446,11 @@ def create_artist_submission():
   # called upon submitting the new artist listing form
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+  form = ArtistForm()
+  if not form.validate_on_submit():
+    for message in form.errors:
+      flash ('error: '+message)
+    return render_template('forms/new_artist.html', form=form)
   name = request.form['name']
   city = request.form['city']
   state = request.form['state']
