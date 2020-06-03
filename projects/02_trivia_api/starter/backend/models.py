@@ -31,7 +31,8 @@ class Question(db.Model):
   id = Column(Integer, primary_key=True)
   question = Column(String)
   answer = Column(String)
-  category = Column(String, ForeignKey('categories.type'))
+  category = Column(String)
+  #category = Column(String, ForeignKey('categories.type'))
   difficulty = Column(Integer)
 
   def __init__(self, question, answer, category, difficulty):
@@ -69,7 +70,7 @@ class Category(db.Model):
 
   id = Column(Integer, primary_key=True)
   type = Column(String)
-  questions = relationship('Question', backref="categories")
+  #questions = relationship('Question', backref="categories")
 
 
   def __init__(self, type):

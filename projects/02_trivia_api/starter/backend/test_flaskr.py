@@ -34,6 +34,7 @@ class TriviaTestCase(unittest.TestCase):
     TODO
     Write at least one test for each test for successful operation and for expected errors.
     """
+
     def test_get_paginated_questions(self):
         res = self.client().get('/questions?page=1')
         data = json.loads(res.data)
@@ -67,7 +68,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertEqual(res.status_code,404)
         self.assertEqual(data['message'],'resource not found')
-    
+
     def test_create_new_question(self):
         res = self.client().post('/questions', json={"question":"from where?",
                                                     "answer": "from test_flaskr",
@@ -79,6 +80,37 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertEqual(data['Question added'],'from where?')
         self.assertEqual(res.status_code, 200)
+    
+    def test_422_delete_beyond_valid_questions(self):
+        res = self.client().delete('/questions/1000')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'],'Unprocessable Entity')
+
+    def test_delete_question(self):
+        self.ques = 'What is my name?'
+        self.answer = 'Meshal'
+        self.category = 3
+        self.difficulty = 1
+        self.question = Question(self.ques,self.answer,self.category,self.difficulty)
+        self.question.id = 100
+        self.question.insert()
+
+        res = self.client().delete('/questions/100')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'],True)
+    
+    def test_search_for_questions(self):
+        res = self.client().post('/questions', json={'searchTerm':'whose'})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        
+
 
 
 # Make the tests conveniently executable

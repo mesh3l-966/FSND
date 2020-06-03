@@ -32,6 +32,25 @@ def create_app(test_config=None):
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
+  @app.route('/categories')
+  def get_categories():
+    categories = Category.query.all()
+    cat_dict = {}
+    for cat in categories:
+      cat_dict[cat.id] = cat.type
+    return jsonify({'categories':cat_dict})
+  '''
+  @TODO: 
+  Create an endpoint to handle GET requests for questions, 
+  including pagination (every 10 questions). 
+  This endpoint should return a list of questions, 
+  number of total questions, current category, categories. 
+
+  TEST: At this point, when you start the application
+  you should see questions and categories generated,
+  ten questions per page and pagination at the bottom of the screen for three pages.
+  Clicking on the page numbers should update the questions. 
+  '''
   @app.route('/questions')
   def questions():
     all_ques = Question.query.all()
@@ -54,18 +73,8 @@ def create_app(test_config=None):
       'currentCategory': None
     }
     return jsonify(result)
-  '''
-  @TODO: 
-  Create an endpoint to handle GET requests for questions, 
-  including pagination (every 10 questions). 
-  This endpoint should return a list of questions, 
-  number of total questions, current category, categories. 
 
-  TEST: At this point, when you start the application
-  you should see questions and categories generated,
-  ten questions per page and pagination at the bottom of the screen for three pages.
-  Clicking on the page numbers should update the questions. 
-  '''
+
   def pagination(request, selection):
     page = request.args.get('page',1, int)
     start = (page-1) * QUESTIONS_PER_PAGE
@@ -103,7 +112,20 @@ def create_app(test_config=None):
   @app.route('/questions', methods=['POST'])
   def add_question():
     data = request.get_json()
-    print(data)
+    if 'searchTerm' in data:
+
+      all_ques = Question.query.filter(Question.question.ilike('%'+ data['searchTerm']+'%')).all()
+      if all_ques is None:
+        abort(404)
+
+      questions = pagination(request,all_ques)
+      result = {
+        'questions': [question.format() for question in questions],
+        'totalQuestions': len(all_ques),
+        'currentCategory': None 
+      }
+      return jsonify(result)
+    
     question = data['question']
     answer = data['answer']
     difficulty = data['difficulty']
@@ -162,13 +184,53 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
+  @app.route('/quizzes', methods=['POST'])
+  def play_quiz():
+    data = request.get_json()
+    previous_questions = data['previous_questions']
+    quiz_category = data['quiz_category']['id']
 
+    if quiz_category == 0:
+      questions = Question.query.all()
+    else:
+      questions = Question.query.filter(Question.category==quiz_category).all()
+    
+    question = random.choice(questions)
+    while(str(question.id) in previous_questions):
+      question = random.choice(questions)
+
+    return jsonify({
+            'question': question.format()
+        })
+    """
+    rndm = random.randint(0,len(questions)-1)
+    print(rndm)
+    print(questions[rndm].id)
+    i = 0
+    while (str(questions[rndm].id) in previous_questions):
+      rndm = random.randint(0,len(questions)-1)
+      i+=1
+      if i == 500:
+        abort(404)
+    
+    
+    currentQuestion = questions[rndm]
+    result = {
+      'question': currentQuestion.format()
+    }
+    question = random.choice(questions)
+    return jsonify({
+                'id': question[0],
+                'question': question[1],
+                'answer': question[2]
+            })
+  """
   '''
   @TODO: 
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
-  
+  #created in errorhandler.py file
   return app
 
 # if __name__ == "__main__":
