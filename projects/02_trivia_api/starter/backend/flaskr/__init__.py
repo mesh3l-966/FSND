@@ -97,6 +97,7 @@ def create_app(test_config=None):
 
     return jsonify({
       'success': True,
+      'question id': question.id,
       'total qustions': len(Question.query.all())
        })
   '''
@@ -189,7 +190,8 @@ def create_app(test_config=None):
     data = request.get_json()
     previous_questions = data['previous_questions']
     quiz_category = data['quiz_category']['id']
-
+    if len(previous_questions) == len(Question.query.all()):
+      abort(404)
     if quiz_category == 0:
       questions = Question.query.all()
     else:
@@ -202,29 +204,7 @@ def create_app(test_config=None):
     return jsonify({
             'question': question.format()
         })
-    """
-    rndm = random.randint(0,len(questions)-1)
-    print(rndm)
-    print(questions[rndm].id)
-    i = 0
-    while (str(questions[rndm].id) in previous_questions):
-      rndm = random.randint(0,len(questions)-1)
-      i+=1
-      if i == 500:
-        abort(404)
-    
-    
-    currentQuestion = questions[rndm]
-    result = {
-      'question': currentQuestion.format()
-    }
-    question = random.choice(questions)
-    return jsonify({
-                'id': question[0],
-                'question': question[1],
-                'answer': question[2]
-            })
-  """
+
   '''
   @TODO: 
   Create error handlers for all expected errors 
