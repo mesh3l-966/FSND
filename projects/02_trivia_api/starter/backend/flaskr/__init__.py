@@ -123,14 +123,18 @@ def create_app(test_config=None):
       result = {
         'questions': [question.format() for question in questions],
         'totalQuestions': len(all_ques),
-        'currentCategory': None 
+        'currentCategory': None,
+        'success': True 
       }
       return jsonify(result)
-    
-    question = data['question']
-    answer = data['answer']
-    difficulty = data['difficulty']
-    category = data['category']
+    try:
+      question = data['question']
+      answer = data['answer']
+      difficulty = data['difficulty']
+      category = data['category']
+    except:
+      abort(400)
+
     ques = Question(question=question, answer=answer, difficulty=difficulty, category=category)
     ques.insert()
 
@@ -202,7 +206,8 @@ def create_app(test_config=None):
       question = random.choice(questions)
 
     return jsonify({
-            'question': question.format()
+            'question': question.format(),
+            'success': True
         })
 
   '''

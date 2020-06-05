@@ -76,11 +76,24 @@ class TriviaTestCase(unittest.TestCase):
                                                         "difficulty": "2"
                                                     })
         data = json.loads(res.data)
-
+        
         self.assertEqual(data['success'], True)
         self.assertEqual(data['Question added'],'from where?')
         self.assertEqual(res.status_code, 200)
     
+    def test_400_post_wrong_format_question(self):
+        res = self.client().post('/questions', json={"question":"from where?",
+                                                    "answer": "from test_flaskr",
+                                                        "cat": "1",
+                                                        "difficulty": "2"
+                                                    })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 400)                                                
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'],'Bad Request')
+
+
     def test_422_delete_beyond_valid_questions(self):
         res = self.client().delete('/questions/1000')
         data = json.loads(res.data)
@@ -109,6 +122,9 @@ class TriviaTestCase(unittest.TestCase):
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'],True)
+
+
         
     def test_get_categories(self):
         res = self.client().get('/categories')
@@ -116,6 +132,29 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(len(data['categories']),6)
+
+
+
+    def test_get_quiz(self):
+        res = self.client().post('/quizzes', json={'previous_questions':[], 'quiz_category':{"type": "Science", "id": "1"}})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'],True)
+
+    
+    def test_get_quez_with_all_in_previous_questions(self):
+        total_no_questions = len(Question.query.all())
+        previous_questions = []
+        previous_questions.extend(range(0,total_no_questions))
+
+        res = self.client().post('/quizzes', json={'previous_questions':previous_questions,
+                                                    'quiz_category':{"type": "Science", "id": "1"}})
+        data = json.loads(res.data)
+
+        self.assertEqual(data['success'], False)
+        self.assertEqual(res.status_code,404)
+        self.assertEqual(data['message'],'resource not found')
 
 
 # Make the tests conveniently executable
