@@ -6,11 +6,13 @@ from flask_cors import CORS
 
 from .database.models import db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth
+from .errorhandler import *
+
 
 app = Flask(__name__)
 setup_db(app)
 CORS(app)
-
+errors(app)
 '''
 @TODO uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
@@ -27,7 +29,17 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
-
+@app.route('/drinks')
+def drinks():
+    unformatted_drinks = Drink.query.all()
+    if not unformatted_drinks:
+        abort(404)
+    drinks = [d.short() for d in unformatted_drinks]
+    result = {
+        "success": True,
+        "drinks": drinks
+        }
+    return jsonify(result)
 
 '''
 @TODO implement endpoint
@@ -37,8 +49,19 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
-
-
+@app.route('/drinks-detail')
+@requires_auth('get:drinks-detail')
+def get_drinks_details(payload):
+    print(payload)
+    unformatted_drinks = Drink.query.all()
+    if not unformatted_drinks:
+        abort(404)
+    drinks = [d.long() for d in unformatted_drinks]
+    result = {
+        "success": True,
+         "drinks": drinks
+         }
+    return jsonify(result)
 '''
 @TODO implement endpoint
     POST /drinks
@@ -48,7 +71,28 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks', methods=['POST'])
+@requires_auth('post:drinks')
+def create_drinks(payload):
+    try:
+        body = request.get_json()
+        title = body['title']
+        recipe = body['recipe']
+    except:
+        abort(400)
+    #try:
+    drink = Drink(title, recipe)
+    Drink.insert(drink)
+    #except:
+     #   abort(500)
 
+    unformatted_drinks = Drink.query.all()
+    drinks = [d.long() for d in unformatted_drinks]
+    result = {
+        "success": True,
+         "drinks": drinks
+         }
+    return jsonify(result) 
 
 '''
 @TODO implement endpoint
