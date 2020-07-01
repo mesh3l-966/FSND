@@ -4,15 +4,21 @@ from sqlalchemy import exc
 import json
 from flask_cors import CORS
 
-from .database.models import db_drop_and_create_all, setup_db, Drink
+from .database.models import * #db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth
-from .errorhandler import *
+# from .errorhandler import *
 
 
 app = Flask(__name__)
 setup_db(app)
-CORS(app)
-errors(app)
+#CORS(app)
+#errors(app)
+CORS(app, resources={r"*":{'origins': "*"}})
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers','Content-Type, Authorization')
+    response.headers.add('Access-Control-Allow-Methods','GET, POST, PATCH, DELETE, OPTIONS')
+    return response
 '''
 @TODO uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
@@ -80,11 +86,11 @@ def create_drinks(payload):
         recipe = body['recipe']
     except:
         abort(400)
-    #try:
-    drink = Drink(title, recipe)
-    Drink.insert(drink)
-    #except:
-     #   abort(500)
+    try:
+        drink = Drink(title=title, recipe=json.dumps(recipe))
+        drink.insert()
+    except:
+        abort(500)
 
     unformatted_drinks = Drink.query.all()
     drinks = [d.long() for d in unformatted_drinks]
@@ -105,7 +111,33 @@ def create_drinks(payload):
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
         or appropriate status code indicating reason for failure
 '''
-
+@app.route('/drinks/<int:id>', methods=['PATCH'])
+@requires_auth('patch:drinks')
+def update_drinks(payload, id):
+    drink = Drink.query.get(id)
+    print(drink.title)
+    if drink is None:
+        abort(404)
+    try:
+        body = request.get_json()
+        title = body['title']
+        recipe = body['recipe']
+    except:
+        abort(400)
+    try:
+        drink.title = title
+        drink.recipe = json.dumps(recipe)
+        drink.update()
+    except:
+        abort(500)
+    
+    unformatted_drinks = Drink.query.all()
+    drinks = [d.long() for d in unformatted_drinks]
+    result = {
+        "success": True,
+         "drinks": drinks
+         }
+    return jsonify(result) 
 
 '''
 @TODO implement endpoint
@@ -117,7 +149,23 @@ def create_drinks(payload):
     returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks/<int:id>', methods=['DELETE'])
+@requires_auth('delete:drinks')
+def delete_drinks(payload, id):
+    drink = Drink.query.get(id)
+    print(drink.title)
+    if drink is None:
+        abort(404)
+    try:
+        drink.delete()
+    except:
+        abort(500)
 
+    result = {
+        "success": True,
+         "delete": id
+         }
+    return jsonify(result) 
 
 ## Error Handling
 '''
@@ -141,14 +189,60 @@ def unprocessable(error):
                     }), 404
 
 '''
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+        'success': False,
+        'error': 400,
+        'message': 'Bad Request'
+    }),400
 
+@app.errorhandler(422)
+def unprocessable(error):
+    return jsonify({
+        'success': False,
+        'error': 422,
+        'message': 'Unprocessable Entity'
+    }),422
+
+
+@app.errorhandler(500)
+def server_error(error):
+    return jsonify({
+        'success': False,
+        'error': 500,
+        'message': 'server error, ensure your applied feilds are properly filled'
+    }), 500
+
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+    return jsonify({
+        'success': False,
+        'error': 405,
+        'message': 'Method not allowed'
+    }), 405
 '''
 @TODO implement error handler for 404
     error handler should conform to general task above 
 '''
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        'success': False,
+        'error': 404,
+        'message': 'resource not found'
+    }),404
 
 
 '''
 @TODO implement error handler for AuthError
     error handler should conform to general task above 
 '''
+@app.errorhandler(AuthError)
+def authentification_failed(AuthError):
+    return jsonify({
+        "success": False,
+        "error": AuthError.status_code,
+        "message": AuthError.error['code']
+                    }), AuthError.status_code   #401
