@@ -40,7 +40,7 @@ def drinks():
     unformatted_drinks = Drink.query.all()
     if not unformatted_drinks:
         abort(404)
-    drinks = [d.short() for d in unformatted_drinks]
+    drinks = [drink.short() for drink in unformatted_drinks]
     result = {
         "success": True,
         "drinks": drinks
@@ -58,11 +58,10 @@ def drinks():
 @app.route('/drinks-detail')
 @requires_auth('get:drinks-detail')
 def get_drinks_details(payload):
-    print(payload)
     unformatted_drinks = Drink.query.all()
     if not unformatted_drinks:
         abort(404)
-    drinks = [d.long() for d in unformatted_drinks]
+    drinks = [drink.long() for drink in unformatted_drinks]
     result = {
         "success": True,
          "drinks": drinks
@@ -84,16 +83,20 @@ def create_drinks(payload):
         body = request.get_json()
         title = body['title']
         recipe = body['recipe']
+        print('title: '+title)
+        print('recipe: '+json.dumps(recipe))
     except:
         abort(400)
-    try:
-        drink = Drink(title=title, recipe=json.dumps(recipe))
-        drink.insert()
-    except:
-        abort(500)
+    #try:
+    drink = Drink(title=title, recipe=json.dumps(recipe))
+    print(drink.title)
+    print(drink.recipe)
+    drink.insert()
+    # except:
+    #     abort(500)
 
     unformatted_drinks = Drink.query.all()
-    drinks = [d.long() for d in unformatted_drinks]
+    drinks = [drink.long() for drink in unformatted_drinks]
     result = {
         "success": True,
          "drinks": drinks
@@ -115,24 +118,31 @@ def create_drinks(payload):
 @requires_auth('patch:drinks')
 def update_drinks(payload, id):
     drink = Drink.query.get(id)
-    print(drink.title)
     if drink is None:
         abort(404)
-    try:
-        body = request.get_json()
+
+    body = request.get_json()
+    if 'title' in body:
         title = body['title']
+        try:
+            drink.title = title
+        except:
+            abort(500)
+
+    if 'recipe' in body:
         recipe = body['recipe']
-    except:
-        abort(400)
+        try:
+            drink.recipe = json.dumps(recipe)
+        except:
+            abort(500)
+            
     try:
-        drink.title = title
-        drink.recipe = json.dumps(recipe)
         drink.update()
     except:
         abort(500)
     
     unformatted_drinks = Drink.query.all()
-    drinks = [d.long() for d in unformatted_drinks]
+    drinks = [drink.long() for drink in unformatted_drinks]
     result = {
         "success": True,
          "drinks": drinks
@@ -153,7 +163,6 @@ def update_drinks(payload, id):
 @requires_auth('delete:drinks')
 def delete_drinks(payload, id):
     drink = Drink.query.get(id)
-    print(drink.title)
     if drink is None:
         abort(404)
     try:

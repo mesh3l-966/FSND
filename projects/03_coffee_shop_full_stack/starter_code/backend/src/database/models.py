@@ -48,13 +48,18 @@ class Drink(db.Model):
     '''
     def short(self):
         print(json.loads(self.recipe))
-        short_recipe = [{'color': r['color'], 'parts': r['parts']} for r in json.loads(self.recipe)]
+        recipe = json.loads(self.recipe)
+        if type(recipe) != type([]):
+            print('type not list')
+            short_recipe = [{'color': recipe['color'], 'parts': recipe['parts']}]
+        else:
+            print('type list')
+            short_recipe = [{'color': r['color'], 'parts': r['parts']} for r in recipe]
         return {
             'id': self.id,
             'title': self.title,
             'recipe': short_recipe
         }
-
     '''
     long()
         long form representation of the Drink model
