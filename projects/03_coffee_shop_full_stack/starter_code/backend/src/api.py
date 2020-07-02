@@ -83,17 +83,13 @@ def create_drinks(payload):
         body = request.get_json()
         title = body['title']
         recipe = body['recipe']
-        print('title: '+title)
-        print('recipe: '+json.dumps(recipe))
     except:
         abort(400)
-    #try:
-    drink = Drink(title=title, recipe=json.dumps(recipe))
-    print(drink.title)
-    print(drink.recipe)
-    drink.insert()
-    # except:
-    #     abort(500)
+    try:
+        drink = Drink(title=title, recipe=json.dumps(recipe))
+        drink.insert()
+    except:
+         abort(500)
 
     unformatted_drinks = Drink.query.all()
     drinks = [drink.long() for drink in unformatted_drinks]
