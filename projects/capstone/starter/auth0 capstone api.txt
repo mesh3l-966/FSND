@@ -21,3 +21,5 @@ eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ii1mbC04UmhnLXIwZVdNZWotdXZzVyJ9.eyJ
 
 
 https://meshal-capstone-app.herokuapp.com/ | https://git.heroku.com/meshal-capstone-app.git
+
+postgres://jgjpcbcdxjurbr:b8a94fc9a16353b69323e3755d54918cb3cb29546eb882c25bd93e26255889a4@ec2-3-81-240-17.compute-1.amazonaws.com:5432/db6nu329gtv7c5
