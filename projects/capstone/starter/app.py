@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from datetime import datetime
 
-from models import setup_db, Actor, Movie
+from models import setup_db, Actor, Movie, db
 from auth import AuthError, requires_auth
 from errorhandler import *
 
@@ -214,4 +214,3 @@ CORS(APP, resources={r"*": {'origins': "*"}})
 
 if __name__ == '__main__':
     APP.run(host='0.0.0.0', port=8080, debug=True)
-    

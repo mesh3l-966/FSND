@@ -84,7 +84,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 400)
         self.assertEqual(data['success'], False)
 
-    @unittest.skip("demonstrating skipping")
+    #@unittest.skip("demonstrating skipping")
     def test_create_movie(self):
         res = self.client().post('/create-movie',
                                  headers={'Authorization':'Bearer ' +self.executive_producer},
@@ -108,7 +108,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 400)
         self.assertEqual(data['success'], False)
 
-    @unittest.skip("demonstrating skipping")
+    #@unittest.skip("demonstrating skipping")
     def test_create_actor(self):
         res = self.client().post('/create-actor',
                                  headers={'Authorization':'Bearer ' +self.executive_producer},

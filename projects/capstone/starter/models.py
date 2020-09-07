@@ -7,9 +7,9 @@ from datetime import date
 
 from sqlalchemy.orm import relationship
 
-database_name = "capstone"
-database_path = "postgresql://{}/{}".format('postgres:laug999@localhost:5432', database_name)
-
+#database_name = "capstone"
+#database_path = "postgresql://{}/{}".format('postgres:laug999@localhost:5432', database_name)
+database_path = os.environ['DATABASE_URL']
 db = SQLAlchemy()
 
 '''
@@ -27,11 +27,12 @@ def setup_db(app, database_path=database_path):
 '''
 Show
 '''
+'''
 shows_table = Table('shows', db.metadata,
                     Column('actors_id', Integer, ForeignKey('actors.id'), nullable=False),
                     Column('movies_id', Integer, ForeignKey('movies.id'), nullable=False)
                     )
-
+'''
 
 '''
 Movie
@@ -44,7 +45,7 @@ class Movie(db.Model):
     title = Column(String)
     release_date = Column(DateTime)
     #actors = relationship('Actor', backref='movies', lazy=True)
-    actors = relationship("Actor", secondary=shows_table, back_populates="movies")
+    #actors = relationship("Actor", secondary=shows_table, back_populates="movies")
 
     def __init__(self, title, release_date):
         self.title = title
@@ -90,7 +91,7 @@ class Actor(db.Model):
     gender = Column(String)
     birth_date = Column(DateTime)
     #movies = relationship('Movie', backref='actors', lazy=True)
-    movies = relationship("Movie", secondary=shows_table, back_populates="actors")
+    #movies = relationship("Movie", secondary=shows_table, back_populates="actors")
 
     def __init__(self, name, gender, birth_date):
         self.name = name
