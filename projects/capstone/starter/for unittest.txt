@@ -1,0 +1,211 @@
+import os
+import unittest
+import json
+from flask_sqlalchemy import SQLAlchemy
+
+from app import create_app
+from models import setup_db, Actor, Movie
+from errorhandler import *
+
+
+class TriviaTestCase(unittest.TestCase):
+    """This class represents the trivia test case"""
+
+    def setUp(self):
+        """Define test variables and initialize app."""
+        self.app = create_app()
+        self.client = self.app.test_client
+        self.database_name = "capstonetest"
+
+        self.database_path = "postgresql://{}/{}".format('postgres:laug999@localhost:5432', self.database_name)
+        self.setup_db = setup_db(self.app, self.database_path)
+        self.errors = errors(self.app)
+        self.executive_producer = """eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI
+        6Ii1mbC04UmhnLXIwZVdNZWotdXZzVyJ9.eyJpc3MiOiJodHRwczovL21lc2hhbC5hd
+        XRoMC5jb20vIiwic3ViIjoiYXV0aDB8NWVkZWJmYTFhMzZlYjIwMDE5N2QyOWMxIiwi
+        YXVkIjoiY2Fwc3RvbmUiLCJpYXQiOjE1OTkxMzgxNzAsImV4cCI6MTU5OTE0NTM3MCw
+        iYXpwIjoiZHlINmxDVGFsUnB3T2ZhWmZiUVY2MlFZeUhFVWx0TnIiLCJzY29wZSI6IiI
+        sInBlcm1pc3Npb25zIjpbImRlbGV0ZTphY3RvciIsImRlbGV0ZTptb3ZpZSIsImdldD
+        phY3RvcnMiLCJnZXQ6bW92aWVzIiwicGF0Y2g6YWN0b3IiLCJwYXRjaDptb3ZpZSIsI
+        nBvc3Q6YWN0b3IiLCJwb3N0Om1vdmllIl19.Zp03J8npxBV4HVmE0jjjppCWEq_a9j6
+        iCslAksqbs7iAsfxom9jlGlXM7xH0JjzNpLVt95K16akscb6akdEQDwGJd38s0UnNlA
+        39ncCuRrKAy8hyIVxhgmzEZtyUB-wkamKLzXnK_o1hhFKxHpJSUpcaof6Oa2Ewbov85C
+        nxhaFvdk2sOkRcufuGVNjFq_gge0wRAE_9cc1ToqoXwVzNspPH32EAtPh7UDj4d-Cnqb
+        JNWIKefV_shgSQTMxXGwKVMPjMRxiOy5XVI-C6xZB6o_keBBPXeJah3j7tBYzkCYLXnK
+        Jge4nIf854wOL83wCAD9fdQMa8jAulmATyOrV1GA"""
+        self.casting_director = """eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ii
+        1mbC04UmhnLXIwZVdNZWotdXZzVyJ9.eyJpc3MiOiJodHRwczovL21lc2hhbC5hdXRoM
+        C5jb20vIiwic3ViIjoiYXV0aDB8NWY0ZGQ0ODI5MTVjZDQwMDY3MTE2NTBjIiwiYXVkI
+        joiY2Fwc3RvbmUiLCJpYXQiOjE1OTkxMzg3NjAsImV4cCI6MTU5OTE0NTk2MCwiYXpwI
+        joiZHlINmxDVGFsUnB3T2ZhWmZiUVY2MlFZeUhFVWx0TnIiLCJzY29wZSI6IiIsInBlc
+        m1pc3Npb25zIjpbImRlbGV0ZTphY3RvciIsImdldDphY3RvcnMiLCJnZXQ6bW92aWVzI
+        iwicGF0Y2g6YWN0b3IiLCJwYXRjaDptb3ZpZSIsInBvc3Q6YWN0b3IiXX0.3vcK8Oq0h
+        8DmG941bALo81dRgITWv3Zo-9aNiebzjhFLW0e4XlJRL6O-USiwE5letNwN6E2sMiQTj
+        HrkptJQGE4trrmG9-XJS9LQvTdZ8odLGYCv9tBZUZl7UPoB0SsxGPkP-RfScSXqCc9Sc
+        QPR0lm870jOv1JAUaYb7p5hKG4lNoVQzOMhUzUu2V4b3DMW-KJ2JY170dRkdgmKqB1Dl
+        te-7olpOsQF1-0CpsBkIQG3qE0JLY62sM50CS_1ZhlVXesjSYse3XGVEHg97WW5U2x66
+        v3q2UnUXckodrk9qald4ZmZCgqbcpRQdN_WD6S5qeVEZvJYPOYb3hP55pUGPQ"""
+        self.casting_assistant = """eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6I
+        i1mbC04UmhnLXIwZVdNZWotdXZzVyJ9.eyJpc3MiOiJodHRwczovL21lc2hhbC5hdXRo
+        MC5jb20vIiwic3ViIjoiYXV0aDB8NWY0ZGQ0ODI5MTVjZDQwMDY3MTE2NTBjIiwiYXVk
+        IjoiY2Fwc3RvbmUiLCJpYXQiOjE1OTkxMzgzNjIsImV4cCI6MTU5OTE0NTU2MiwiYXpw
+        IjoiZHlINmxDVGFsUnB3T2ZhWmZiUVY2MlFZeUhFVWx0TnIiLCJzY29wZSI6IiIsInBl
+        cm1pc3Npb25zIjpbImdldDphY3RvcnMiLCJnZXQ6bW92aWVzIl19.LRzLAX_wjActqis
+        bahOM4YvlApQHkDVW1pFVY4lJzQKBPbnSKKiI1udzKOntuWmCBweraeKm1a8QJDTEVhF
+        4oQNNFt4kkdKFSkvr74jMv-YxX-pIXXu3ouhlR0mgCC_fGoYXvhZCGTfyDmfdDgzYT64
+        shfmhjPrST-eUhKVcRYYXGZc1YypUu2HEzx6dZrWV107-hDR_7sjfo7B5XCdpGw986s9
+        MhWiO897H9yJvfSURkZHWqXJYj_zbaPhqtKhllhodwSt4fYBIDi5Wa_3ufMK9zxh0-P3
+        elKuT7FvGGwNDkC8a7J-7K4XtpeN6aEBdiHOOIoUjOq8-4PZSk7gb3w"""
+
+        # binds the app to the current context
+        with self.app.app_context():
+            self.db = SQLAlchemy()
+            self.db.init_app(self.app)
+            # create all tables
+            self.db.create_all()
+    
+    def tearDown(self):
+        """Executed after reach test"""
+        pass
+
+    """
+    TODO
+    Write at least one test for each test for successful operation and for expected errors.
+    """
+
+    def test_get_actors_without_token(self):
+        res = self.client().get('/actors')
+        print(res.data)
+        data = json.loads(res.data)
+
+
+        self.assertEqual(res.status_code, 404)
+        #self.assertEqual(data['success'],False)
+        #self.assertTrue(len(data['message']))
+    """
+    def test_get_actors(self):
+        res = self.client().get('/actors', headers={
+                'Authorization': 'Bearer {}'.format(self.casting_assistant),
+            })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'],True)
+        self.assertTrue(len(data['message']))"""
+    """
+    def test_404_request_beyond_valid_page(self):
+        res = self.client().get('/questions?page=1000')
+        data = json.loads(res.data)
+
+        self.assertEqual(data['success'], False)
+        self.assertEqual(res.status_code,404)
+        self.assertEqual(data['message'],'resource not found')
+
+    def test_get_questions_by_category(self):
+        res = self.client().get('/categories/1/questions')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'],True)
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(len(data['questions']))
+
+    def test_404_request_beyond_valid_category(self):
+        res = self.client().get('/categories/1000/questions')
+        data = json.loads(res.data)
+
+        self.assertEqual(data['success'], False)
+        self.assertEqual(res.status_code,404)
+        self.assertEqual(data['message'],'resource not found')
+
+    def test_create_new_question(self):
+        res = self.client().post('/questions', json={"question":"from where?",
+                                                    "answer": "from test_flaskr",
+                                                        "category": "1",
+                                                        "difficulty": "2"
+                                                    })
+        data = json.loads(res.data)
+        
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['Question added'],'from where?')
+        self.assertEqual(res.status_code, 200)
+    
+    def test_400_post_wrong_format_question(self):
+        res = self.client().post('/questions', json={"question":"from where?",
+                                                    "answer": "from test_flaskr",
+                                                        "cat": "1",
+                                                        "difficulty": "2"
+                                                    })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 400)                                                
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'],'Bad Request')
+
+
+    def test_422_delete_beyond_valid_questions(self):
+        res = self.client().delete('/questions/1000')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'],'Unprocessable Entity')
+
+    def test_delete_question(self):
+        self.ques = 'What is my name?'
+        self.answer = 'Meshal'
+        self.category = 3
+        self.difficulty = 1
+        self.question = Question(self.ques,self.answer,self.category,self.difficulty)
+        self.question.id = 100
+        self.question.insert()
+
+        res = self.client().delete('/questions/100')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'],True)
+    
+    def test_search_for_questions(self):
+        res = self.client().post('/questions', json={'searchTerm':'whose'})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'],True)
+
+
+        
+    def test_get_categories(self):
+        res = self.client().get('/categories')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(data['categories']),6)
+
+
+
+    def test_get_quiz(self):
+        res = self.client().post('/quizzes', json={'previous_questions':[], 'quiz_category':{"type": "Science", "id": "1"}})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'],True)
+
+    
+    def test_get_quez_with_all_in_previous_questions(self):
+        total_no_questions = len(Question.query.all())
+        previous_questions = []
+        previous_questions.extend(range(0,total_no_questions))
+
+        res = self.client().post('/quizzes', json={'previous_questions':previous_questions,
+                                                    'quiz_category':{"type": "Science", "id": "1"}})
+        data = json.loads(res.data)
+
+        self.assertEqual(data['success'], False)
+        self.assertEqual(res.status_code,404)
+        self.assertEqual(data['message'],'resource not found')
+    """
+    
+# Make the tests conveniently executable
+if __name__ == "__main__":
+    unittest.main()

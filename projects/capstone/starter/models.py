@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import Column, String, Integer, create_engine, ForeignKey, DateTime
+from sqlalchemy import Column, String, Integer, create_engine, ForeignKey, DateTime, Table
 from flask_sqlalchemy import SQLAlchemy
 import json
 from datetime import date
@@ -23,17 +23,28 @@ def setup_db(app, database_path=database_path):
     db.init_app(app)
     db.create_all()
 
+
+'''
+Show
+'''
+shows_table = Table('shows', db.metadata,
+                    Column('actors_id', Integer, ForeignKey('actors.id'), nullable=False),
+                    Column('movies_id', Integer, ForeignKey('movies.id'), nullable=False)
+                    )
+
+
 '''
 Movie
 
 '''
-class Movie(db.Model):  
+class Movie(db.Model):
     __tablename__ = 'movies'
 
     id = Column(Integer, primary_key=True)
     title = Column(String)
     release_date = Column(DateTime)
-    #actors = db.relationship('Actor', backref='movies', lazy=True)
+    #actors = relationship('Actor', backref='movies', lazy=True)
+    actors = relationship("Actor", secondary=shows_table, back_populates="movies")
 
     def __init__(self, title, release_date):
         self.title = title
@@ -46,7 +57,7 @@ class Movie(db.Model):
             db.session.commit()
         except:
             db.session.rollback()
-  
+
     def update(self):
         try:
             db.session.commit()
@@ -62,16 +73,16 @@ class Movie(db.Model):
 
     def format(self):
         return {
-        'id': self.id,
-        'title': self.title,
-        'release_date': self.release_date
+            'id': self.id,
+            'title': self.title,
+            'release_date': self.release_date
         }
-        
+
 '''
 Actor
 
 '''
-class Actor(db.Model):  
+class Actor(db.Model):
     __tablename__ = 'actors'
 
     id = Column(Integer, primary_key=True)
@@ -79,7 +90,7 @@ class Actor(db.Model):
     gender = Column(String)
     birth_date = Column(DateTime)
     #movies = relationship('Movie', backref='actors', lazy=True)
-
+    movies = relationship("Movie", secondary=shows_table, back_populates="actors")
 
     def __init__(self, name, gender, birth_date):
         self.name = name
@@ -92,7 +103,7 @@ class Actor(db.Model):
             db.session.commit()
         except:
             db.session.rollback()
-    
+
     def update(self):
         try:
             db.session.commit()
@@ -108,15 +119,15 @@ class Actor(db.Model):
 
     def format(self):
         return {
-        'id': self.id,
-        'name': self.name,
-        'gender': self.gender,
-        'birth_date': self.birth_date
+            'id': self.id,
+            'name': self.name,
+            'gender': self.gender,
+            'birth_date': self.birth_date
         }
 
 """
 class Show(db.Model):
-    __tablename__ = 'show'
+    __tablename__ = 'shows'
 
     id = Column(Integer, primary_key=True)
     actor_id = Column(Integer, ForeignKey('actors.id'), nullable=False)

@@ -9,7 +9,7 @@ def errors(app):
             'success': False,
             'error': 404,
             'message': 'resource not found'
-        }),404
+        }), 404
 
     @app.errorhandler(400)
     def bad_request(error):
@@ -17,7 +17,7 @@ def errors(app):
             'success': False,
             'error': 400,
             'message': 'Bad Request'
-        }),400
+        }), 400
 
     @app.errorhandler(422)
     def unprocessable(error):
@@ -25,7 +25,7 @@ def errors(app):
             'success': False,
             'error': 422,
             'message': 'Unprocessable Entity'
-        }),422
+        }), 422
 
 
     @app.errorhandler(500)
@@ -60,7 +60,6 @@ def errors(app):
             'error': 403,
             'message': "Forbidden, You don't have the permission to access the requested resource."
         }), 403
-    
 
 """
     @app.errorhandler(AuthError)
