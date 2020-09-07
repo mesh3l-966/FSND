@@ -1,14 +1,13 @@
 import os
-from sqlalchemy import Column, String, Integer, create_engine, ForeignKey, DateTime, Table
+from sqlalchemy import Column, String, Integer, \
+    create_engine, ForeignKey, DateTime, Table
 from flask_sqlalchemy import SQLAlchemy
 import json
 from datetime import date
-#from flask import abort
+# from flask import abort
 
 from sqlalchemy.orm import relationship
 
-#database_name = "capstone"
-#database_path = "postgresql://{}/{}".format('postgres:laug999@localhost:5432', database_name)
 database_path = os.environ['DATABASE_URL']
 db = SQLAlchemy()
 
@@ -16,6 +15,8 @@ db = SQLAlchemy()
 setup_db(app)
     binds a flask application and a SQLAlchemy service
 '''
+
+
 def setup_db(app, database_path=database_path):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_path
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -29,8 +30,10 @@ Show
 '''
 
 shows_table = Table('shows', db.metadata,
-                    Column('actors_id', Integer, ForeignKey('actors.id'), nullable=False),
-                    Column('movies_id', Integer, ForeignKey('movies.id'), nullable=False)
+                    Column('actors_id', Integer,
+                           ForeignKey('actors.id'), nullable=False),
+                    Column('movies_id', Integer,
+                           ForeignKey('movies.id'), nullable=False)
                     )
 
 
@@ -38,38 +41,41 @@ shows_table = Table('shows', db.metadata,
 Movie
 
 '''
+
+
 class Movie(db.Model):
     __tablename__ = 'movies'
 
     id = Column(Integer, primary_key=True)
     title = Column(String)
     release_date = Column(DateTime)
-    #actors = relationship('Actor', backref='movies', lazy=True)
-    actors = relationship("Actor", secondary=shows_table, back_populates="movies")
+    # actors = relationship('Actor', backref='movies', lazy=True)
+    actors = relationship("Actor",
+                          secondary=shows_table,
+                          back_populates="movies")
 
     def __init__(self, title, release_date):
         self.title = title
         self.release_date = release_date
 
-
     def insert(self):
         try:
             db.session.add(self)
             db.session.commit()
-        except:
+        except Exception:
             db.session.rollback()
 
     def update(self):
         try:
             db.session.commit()
-        except:
+        except Exception:
             db.session.rollback()
 
     def delete(self):
         try:
             db.session.delete(self)
             db.session.commit()
-        except:
+        except Exception:
             db.session.rollback()
 
     def format(self):
@@ -79,10 +85,13 @@ class Movie(db.Model):
             'release_date': self.release_date
         }
 
+
 '''
 Actor
 
 '''
+
+
 class Actor(db.Model):
     __tablename__ = 'actors'
 
@@ -90,8 +99,10 @@ class Actor(db.Model):
     name = Column(String)
     gender = Column(String)
     birth_date = Column(DateTime)
-    #movies = relationship('Movie', backref='actors', lazy=True)
-    movies = relationship("Movie", secondary=shows_table, back_populates="actors")
+    # movies = relationship('Movie', backref='actors', lazy=True)
+    movies = relationship("Movie",
+                          secondary=shows_table,
+                          back_populates="actors")
 
     def __init__(self, name, gender, birth_date):
         self.name = name
@@ -102,20 +113,20 @@ class Actor(db.Model):
         try:
             db.session.add(self)
             db.session.commit()
-        except:
+        except Exception:
             db.session.rollback()
 
     def update(self):
         try:
             db.session.commit()
-        except:
+        except Exception:
             db.session.rollback()
 
     def delete(self):
         try:
             db.session.delete(self)
             db.session.commit()
-        except:
+        except Exception:
             db.session.rollback()
 
     def format(self):
@@ -125,6 +136,7 @@ class Actor(db.Model):
             'gender': self.gender,
             'birth_date': self.birth_date
         }
+
 
 """
 class Show(db.Model):

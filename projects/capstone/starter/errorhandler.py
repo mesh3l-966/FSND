@@ -1,5 +1,6 @@
 from flask import jsonify
-#from auth import AuthError
+# from auth import AuthError
+
 
 def errors(app):
 
@@ -27,15 +28,14 @@ def errors(app):
             'message': 'Unprocessable Entity'
         }), 422
 
-
     @app.errorhandler(500)
     def server_error(error):
         return jsonify({
             'success': False,
             'error': 500,
-            'message': 'server error, ensure your applied feilds are properly filled'
+            'message':
+            'server error, ensure your applied feilds are properly filled'
         }), 500
-
 
     @app.errorhandler(405)
     def method_not_allowed(error):
@@ -58,13 +58,5 @@ def errors(app):
         return jsonify({
             'success': False,
             'error': 403,
-            'message': "Forbidden, You don't have the permission to access the requested resource."
+            'message': "Forbidden, You don't have the permission to access."
         }), 403
-
-"""
-    @app.errorhandler(AuthError)
-    def handle_auth_error(ex, status_code):
-        response = jsonify(ex.error)
-        response.status_code = ex.status_code
-        return jsonify(response)
-"""

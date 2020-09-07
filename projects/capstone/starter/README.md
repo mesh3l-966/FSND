@@ -39,27 +39,17 @@ To run the server, execute:
   ├── requirements.txt *** The dependencies we need to install with "pip3 install -r requirements.txt"
   ├── manage.py *** For migration the database
   ├── Procfile *** heroku commands
+  ├── setup.sh *** has all needed variables for auth0 and tokens for all roles
   └── test_app.py *** a unittest file that conatins 28 tests
   ```
-## Tasks
 
-### Setup Auth0
+## Project Details
 
-1. Create a new Auth0 Account
-2. Select a unique tenant domain
-3. Create a new, single page web application
-4. Create a new API
-    - in API Settings:
-        - Enable RBAC
-        - Enable Add Permissions in the Access Token
-5. Create new API permissions:
-    - `delete:actor`
-    - `get:actors`
-    - `get:movies`
-    - `patch:actor`
-    - `patch:movie`
-    - `post:actor`
-6. Create new roles for:
+### Authorization:
+All Endpoints that shown down needs JWT tokens {Authorization: Bearer `Token`} to respond, otherwise json error will return, except '/' which
+return 'healthy' for test issues.
+
+#### Roles:
     - Casting Assistant
         - Can view actors and movies
     - Casting Director
@@ -69,33 +59,145 @@ To run the server, execute:
     - Executive Producer
         - All permissions a Casting Director has and…
         - Add or delete a movie from the database
-7. Create the following Endpoints:
+
+#### Permissions:
+    - `delete:actor`
+    - `get:actors`
+    - `get:movies`
+    - `patch:actor`
+    - `patch:movie`
+    - `post:actor`
+
+
+### Endpoints:
+The following Endpoints:
+        - GET / for test, return 'healthy'
         - GET /actors and /movies
-        - DELETE /actors/ and /movies/
-        - POST /actors and /movies and
-        - PATCH /actors/ and /movies/
-
-8. Test your endpoints with test_app.py (unittest). 
-    - One test for success behavior of each endpoint
-    - One test for error behavior of each endpoint
-    - At least two tests of RBAC for each role
+        - DELETE /actors/<int:id> and /movies/<int:id>
+        - POST /create-actor and /create-movie and
+        - PATCH /actors/<int:id> and /movies/<int:id>
 
 
-### Implement The Server
+#### GET '/actors':
+- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
+- Request Arguments: None
+- Returns: A json object with a single keys, actors, that contains key:value pairs, each boject inside actors has the keys: id, name, birth_date, and gender, example:
+{
+    "actors": [
+        {
+            "birth_date": "Fri, 19 Dec 1986 00:00:00 GMT",
+            "gender": "male",
+            "id": 1,
+            "name": "Ali"
+        }
+    ]
+}
 
-After creating an account in heroku, enter the following commands:
+#### GET '/movies':
+- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
+- Request Arguments: None
+- Returns: A json object a single keys, movies, that contains key:value pairs, each boject inside movies has the keys: id, title, and release_date, example:
+{
+    "movies": [
+        {
+            "id": 1,
+            "release_date": "Sat, 04 May 2002 00:00:00 GMT",
+            "title": "the x files"
+        }
+    ]
+}
 
+#### POST '/create-actor':
+- Sends post requests that has a json body to add new actors.
+- Request Arguments: json body with keys, name, gender, and birth_date. for example:
+{"name":"Ahmed",
+"gender": "male",
+"birth_date": "19-12-1986"
+}
+- Returns all actors, success:
+{
+    "actors": [
+        {
+            "birth_date": "Fri, 19 Dec 1986 00:00:00 GMT",
+            "gender": "male",
+            "id": 1,
+            "name": "Ahmed"
+        }
+    ],
+    "success": true
+}
+
+#### POST '/create-movie':
+- Sends post requests that has a json body to add new movies.
+- Request Arguments: json body with keys, title, and release_date. for example:
+{"title":"God Father",
+"birth_date": "19-12-1986"
+}
+- Returns all movies, success:
+{
+    "movies": [
+        {
+            "release_date": "Fri, 19 Dec 1986 00:00:00 GMT",
+            "id": 1,
+            "title": "God Father"
+        }
+    ],
+    "success": true
+}
+
+#### Delete '/actors/<int:id>':
+- Sends request for deleteing an actor with id = actor_id.
+- Returns added success, and the id of the deleted actor:
+{"success": True,
+"id": 19
+}
+
+#### Delete '/movies/<int:id>':
+- Sends request for deleteing a movie with id = movies_id.
+- Returns added success, and the id of the deleted movie:
+{"success": True,
+"id": 19
+}
+
+#### PACTCH '/actors/<int:id>':
+- Sends request for modifying an actor with id = actor_id.
+- Returns success, and all actors.
+
+#### PATCH '/movies/<int:id>':
+- Sends request for modifying a movie with id = movies_id.
+- Returns success, and all movies.
+
+#### Errors:
+Error Handling Errors are returned as JSON objects in the following format:
+
+{ "success": False, "error": 400, "message": "bad request" }
+
+
+## To Run The Server
+
+### Locally
+
+1. Run the command :`pip install -r requirements.txt` to intall all dependencies. 
+
+2. Excecute the file setup.sh which has the needed variables.
+
+3. Run `python app.py` to run the server.
+
+4. For test Run the command `python -m unittest test_app.py`
+
+
+
+#### Implement The Server (heroku)
+Run the following commands.
 1. `heroku create name_of_your_app`
 2. `git remote add heroku heroku_git_url`
 3. `heroku addons:create heroku-postgresql:hobby-dev --app name_of_your_application`
 4. `heroku config --app name_of_your_application`
-
+5. `heroku run python manage.py db upgrade --app name_of_your_application`
 
 ### Important Information About the Project:
 
 1. Application URL: `https://meshal-capstone-app.herokuapp.com/`
 2. Heroku Repository: `https://git.heroku.com/meshal-capstone-app.git`
 3. The Project Github rep: `https://github.com/mesh3l-966/FSND/tree/master/projects/capstone/`
-4. Excecutive Producer Token: `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ii1mbC04UmhnLXIwZVdNZWotdXZzVyJ9.eyJpc3MiOiJodHRwczovL21lc2hhbC5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NWVkZWJmYTFhMzZlYjIwMDE5N2QyOWMxIiwiYXVkIjoiY2Fwc3RvbmUiLCJpYXQiOjE1OTk0OTA4MjEsImV4cCI6MTU5OTU3NzIyMSwiYXpwIjoiZHlINmxDVGFsUnB3T2ZhWmZiUVY2MlFZeUhFVWx0TnIiLCJzY29wZSI6IiIsInBlcm1pc3Npb25zIjpbImRlbGV0ZTphY3RvciIsImRlbGV0ZTptb3ZpZSIsImdldDphY3RvcnMiLCJnZXQ6bW92aWVzIiwicGF0Y2g6YWN0b3IiLCJwYXRjaDptb3ZpZSIsInBvc3Q6YWN0b3IiLCJwb3N0Om1vdmllIl19.7bhuwSVSlCZUm3UtJIEe5pEqzb0p7jC6GTcmaXrCFEX_7wKODf1DU_0Wjsc83LDU7Q1imYMHKeZlxghvglwG3ISYpJJJGKdno6N1ER9qkezjQ7qQDU3FpyUNRs7LR-0xpXP-Li-V9KLVuyyKvRG57ZgkEgEjK3ES28V8kKZq_mLZqQb3jLygscSUZME5dnKRXkQoeKin_rdRtWKbdf_V7O7MRXBKAstQQDFmR9pZrl0bMXz7goYZEBlMSLXDKj_nt8ASfCoyFNwHaeMO523Sb5rCUxAs1vvEzr2pNQ8Lq0FnT8lbLU0ib6Zf9cCg51ZrpA7K5j9XS7yi0gM2VLn7bQ`
-5. Casting Director Token: `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ii1mbC04UmhnLXIwZVdNZWotdXZzVyJ9.eyJpc3MiOiJodHRwczovL21lc2hhbC5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NWY1NTU3ZjkzOTdiNzAwMDY3NTA5NjkwIiwiYXVkIjoiY2Fwc3RvbmUiLCJpYXQiOjE1OTk0OTA5NjQsImV4cCI6MTU5OTU3NzM2NCwiYXpwIjoiZHlINmxDVGFsUnB3T2ZhWmZiUVY2MlFZeUhFVWx0TnIiLCJzY29wZSI6IiIsInBlcm1pc3Npb25zIjpbImRlbGV0ZTphY3RvciIsImdldDphY3RvcnMiLCJnZXQ6bW92aWVzIiwicGF0Y2g6YWN0b3IiLCJwYXRjaDptb3ZpZSIsInBvc3Q6YWN0b3IiXX0.oeQxcVmz8kIj4kV3mx9Qx0LjORbSUvLxzKdzf-0VFHhxtBcSCy_Irq5aQl3m8NuzUHzXS5vcHVE9vTlsNMQHUF5naO2JGghNHYKsmVK0A63TKT1DpcTCrvHtEhRzKysddcjWM5dRZNpETLYykRulwZydq2_9_szQ24OhSNmyMkhKvbMR8op8dFguJaLD2gpp0losGXedKpf_OfHdTubIGzKrN4K3i18lxmlYxQX-M5A6Pj4p4gJb_eHVt3CdSJF8JBLj820N9vkzc2-dPuizLPi9EwShcmR-jBeqA40JNrTjZEuvL5uEoaj5dWFHUD4AuU9y-4bcEKJoBaSjs160mQ`
-6. Casting Assistant Token: `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ii1mbC04UmhnLXIwZVdNZWotdXZzVyJ9.eyJpc3MiOiJodHRwczovL21lc2hhbC5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NWY1NTU3ZjkzOTdiNzAwMDY3NTA5NjkwIiwiYXVkIjoiY2Fwc3RvbmUiLCJpYXQiOjE1OTk0OTEwNTEsImV4cCI6MTU5OTU3NzQ1MSwiYXpwIjoiZHlINmxDVGFsUnB3T2ZhWmZiUVY2MlFZeUhFVWx0TnIiLCJzY29wZSI6IiIsInBlcm1pc3Npb25zIjpbImdldDphY3RvcnMiLCJnZXQ6bW92aWVzIl19.a2FIepcmDo4fVK5szysuQmYcDWdBa0TQh3b09py8h4Oryr715ce_qjZrtnjpp1vLFYnq6M0qZGcjuoklsVGKmcOP1Z2xY-FrB-uRiq1rHXyDPXCn5xRA2c5bO8CGLE_3u0hihhmeVKyqaBufyLq4RBg63uDKgsElA0lyEbFlCJ0BoD5qtL6tFEEHZ0e148JMKq7iAHceuyPdXiapn20ciVFYITyDgtisGxmp9ow1bKJvaQcXNsd7UTFv1GmRfzUI2-cmngHSRYWI7P0EXWP-XCdsA5RN-3_Sae9Dcw_1YSdpBp8Fjfd8FPkCm0cDVybcuUhTa0aRS7LL4VqGh0o_IA`
+4. Tokens are saved as variables in setup.sh

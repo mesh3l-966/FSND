@@ -8,6 +8,7 @@ from models import setup_db, Actor, Movie, db
 from auth import AuthError, requires_auth
 from errorhandler import *
 
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
@@ -24,7 +25,6 @@ def create_app(test_config=None):
             'GET, POST, PATCH, DELETE, OPTIONS'
             )
         return response
-
 
     @app.route('/')
     def healthy():
@@ -58,12 +58,12 @@ def create_app(test_config=None):
             title = body['title']
             release_date = body['release_date']
             release_date = datetime.strptime(release_date, '%d-%m-%Y')
-        except:
+        except Exception:
             abort(400)
         try:
             movie = Movie(title=title, release_date=release_date)
             movie.insert()
-        except:
+        except Exception:
             abort(500)
 
         unformatted_movies = Movie.query.all()
@@ -83,12 +83,12 @@ def create_app(test_config=None):
             gender = body['gender']
             birth_date = body['birth_date']
             birth_date = datetime.strptime(birth_date, '%d-%m-%Y')
-        except:
+        except Exception:
             abort(400)
         try:
             actor = Actor(name=name, gender=gender, birth_date=birth_date)
             actor.insert()
-        except:
+        except Exception:
             abort(500)
 
         unformatted_actors = Actor.query.all()
@@ -110,19 +110,20 @@ def create_app(test_config=None):
             title = body['title']
             try:
                 movie.title = title
-            except:
+            except Exception:
                 abort(500)
 
         if 'release_date' in body:
             release_date = body['release_date']
             try:
-                movie.release_date = datetime.strptime(release_date, '%d-%m-%Y')
-            except:
+                movie.release_date = datetime.strptime(release_date,
+                                                       '%d-%m-%Y')
+            except Exception:
                 abort(500)
 
         try:
             movie.update()
-        except:
+        except Exception:
             abort(500)
 
         unformatted_movies = Movie.query.all()
@@ -144,25 +145,25 @@ def create_app(test_config=None):
             name = body['name']
             try:
                 actor.name = name
-            except:
+            except Exception:
                 abort(500)
         if 'gender' in body:
             gender = body['gender']
             try:
                 actor.gender = gender
-            except:
+            except Exception:
                 abort(500)
 
         if 'birth_date' in body:
             birth_date = body['birth_date']
             try:
                 actor.birth_date = datetime.strptime(birth_date, '%d-%m-%Y')
-            except:
+            except Exception:
                 abort(500)
 
         try:
             actor.update()
-        except:
+        except Exception:
             abort(500)
 
         unformatted_actors = Actor.query.all()
@@ -181,7 +182,7 @@ def create_app(test_config=None):
             abort(404)
         try:
             movie.delete()
-        except:
+        except Exception:
             abort(500)
         result = {
             "success": True,
@@ -197,7 +198,7 @@ def create_app(test_config=None):
             abort(404)
         try:
             actor.delete()
-        except:
+        except Exception:
             abort(500)
         result = {
             "success": True,
@@ -206,6 +207,7 @@ def create_app(test_config=None):
         return jsonify(result)
 
     return app
+
 
 app = create_app()
 setup_db(app)
